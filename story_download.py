@@ -6,6 +6,8 @@ import pytz
 import logging
 
 if __name__ == "__main__":
+    logging.info("Start script to download instagram stories.")
+
     user = os.environ["USER"]
     pw = os.environ["PASSWORD"]
 
