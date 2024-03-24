@@ -27,10 +27,17 @@ if __name__ == "__main__":
     for story in stories:
 
         for item in story.get_items():
-            local_timestamp = item.date_local
-            date = local_timestamp.strftime('%Y-%m-%d')
-            loader.dirname_pattern = f"data/{date}/"  # f'highlights/{item.owner_username}'
-            # loader.filename_pattern = f'{item.title}'
+            local_timestamp = item.date_utc
+
+            # Convert it to GMT-6
+            denver_timezone = pytz.timezone('US/Mountain')
+            local_timestamp = local_timestamp.astimezone(denver_timezone)
+
+            date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
+            dir_name = local_timestamp.strftime('%Y-%m-%d')
+
+            loader.dirname_pattern = f"data/{dir_name}/"
+            loader.filename_pattern = f'{date}'
             loader.download_storyitem(item, target='')
 
 
