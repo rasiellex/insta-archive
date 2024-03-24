@@ -1,19 +1,22 @@
 import instaloader
 import time
 import os
+import random
+import pytz
+import logging
 
 if __name__ == "__main__":
     user = os.environ["USER"]
     pw = os.environ["PASSWORD"]
 
     loader = instaloader.Instaloader(
-        # storyitem_metadata_txt_pattern="logs.txt"
+        download_video_thumbnails=False
     )
 
     # Login (optional)
     # If you want to download stories from private profiles, you need to login with your Instagram credentials.
     loader.login(user=user, passwd=pw)
-    #
+
     # Define the profile name
     profile_name = ""  # Replace "username" with the actual username of the profile you want to download stories from
 
@@ -25,7 +28,7 @@ if __name__ == "__main__":
     stories = loader.get_stories(userids=[profile.userid])
 
     for story in stories:
-
+        logging.info(f"Number of stories found: {story.itemcount}")
         for item in story.get_items():
             local_timestamp = item.date_utc
 
@@ -40,8 +43,7 @@ if __name__ == "__main__":
             loader.filename_pattern = f'{date}'
             loader.download_storyitem(item, target='')
 
-
-    # Download stories
-    # loader.download_stories(userids=[profile.userid], filename_target="{date_utc}_story")
+            delay = random.randint(4, 10)
+            time.sleep(delay)
 
     print("Stories downloaded successfully.")
