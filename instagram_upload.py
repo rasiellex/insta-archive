@@ -17,7 +17,7 @@ def split_list(ls, chunk_size):
 if __name__ == "__main__":
     logger.add("insta-download.log")
     start_time = time.time()
-    logger.info("Start script to upload instagram stories.")
+    logger.info("Start process: Upload to Instagram.")
 
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
