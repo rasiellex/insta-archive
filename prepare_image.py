@@ -1,16 +1,20 @@
-from PIL import Image
+import glob
 import os
+from datetime import datetime, timedelta
+
+import pytz
+from PIL import Image
+from loguru import logger
 
 
 def preprocess_image(img_path: str):
-
+    logger.info(f"Preprocess image for instagram: {img_path}")
     input_dir = os.path.dirname(img_path)
     filename = os.path.splitext(os.path.basename(img_path))
     basename, extension = filename[0], filename[1]
     output_path = f"{input_dir}/{basename}_edited{extension}"
 
     img = Image.open(img_path)
-    img.show()
 
     # get dimensions of original image
     original_width, original_height = img.size
@@ -37,7 +41,25 @@ def preprocess_image(img_path: str):
 
     # save the result
     new_image.save(output_path)
+    logger.info(f"Sucessfully preprocessed and saved new image. Path to file: {output_path}")
+
 
 if __name__ == "__main__":
-    image_path = "D:/PyCharm/insta-archive/data/2024-03-22/2024-03-22_08-30-07_UTC.jpg"
-    preprocess_image(image_path)
+    logger.add("insta-archive.log")
+
+    local_timestamp_org = datetime(2024, 3, 24, 7, 10, 0)
+
+    # Convert it to GMT-6
+    denver_timezone = pytz.timezone('US/Mountain')
+    local_timestamp = local_timestamp_org.astimezone(denver_timezone)
+
+    local_timestamp = local_timestamp - timedelta(minutes=30)
+
+    date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
+    dir_name = local_timestamp.strftime('%Y-%m-%d')
+
+    fps = glob.glob(f"data/{dir_name}/*.jpg")
+    fps = [file for file in fps if not "edit" in file]
+
+    for file in fps:
+        preprocess_image(file)

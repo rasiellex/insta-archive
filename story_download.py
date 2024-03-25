@@ -1,28 +1,30 @@
-import instaloader
-import time
-import os
 import random
+import time
+
+import instaloader
 import pytz
-import logging
+import yaml
+from loguru import logger
 
 if __name__ == "__main__":
-    logging.info("Start script to download instagram stories.")
+    logger.add("insta-archive.log")
+    logger.info("Start script to download instagram stories.")
 
-    user = os.environ["USER"]
-    pw = os.environ["PASSWORD"]
+    with open('config.yml', 'r') as file:
+        config = yaml.safe_load(file)
+
+    user = config["USER"]
+    pw = config["PASSWORD"]
 
     loader = instaloader.Instaloader(
         download_video_thumbnails=False
     )
 
-    # Login (optional)
     # If you want to download stories from private profiles, you need to login with your Instagram credentials.
     loader.login(user=user, passwd=pw)
 
     # Define the profile name
-    profile_name = ""  # Replace "username" with the actual username of the profile you want to download stories from
-
-    # loader.download_profile(profile_name, download_stories_only=True,profile_pic=False)
+    profile_name = "illenium"
 
     # Retrieve the profile metadata
     profile = instaloader.Profile.from_username(loader.context, profile_name)
@@ -30,7 +32,7 @@ if __name__ == "__main__":
     stories = loader.get_stories(userids=[profile.userid])
 
     for story in stories:
-        logging.info(f"Number of stories found: {story.itemcount}")
+        logger.info(f"Number of stories found: {story.itemcount}")
         for item in story.get_items():
             local_timestamp = item.date_utc
 
@@ -41,11 +43,11 @@ if __name__ == "__main__":
             date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
             dir_name = local_timestamp.strftime('%Y-%m-%d')
 
-            loader.dirname_pattern = f"data/{dir_name}/"
+            loader.dirname_pattern = f"stories/{dir_name}/"
             loader.filename_pattern = f'{date}'
             loader.download_storyitem(item, target='')
 
             delay = random.randint(4, 10)
             time.sleep(delay)
 
-    print("Stories downloaded successfully.")
+    logger.success("Successfully downloaded stories.")
