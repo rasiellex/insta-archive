@@ -15,7 +15,7 @@ def split_list(ls, chunk_size):
 
 
 if __name__ == "__main__":
-    logger.add("insta-download.log")
+    logger.add("insta-upload.log")
     start_time = time.time()
     logger.info("Start process: Upload to Instagram.")
 
