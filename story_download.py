@@ -7,7 +7,7 @@ import yaml
 from loguru import logger
 
 if __name__ == "__main__":
-    logger.add("insta-archive.log")
+    logger.add("insta-upload.log")
     logger.info("Start script to download instagram stories.")
 
     with open('config.yml', 'r') as file:
@@ -15,6 +15,9 @@ if __name__ == "__main__":
 
     user = config["USER"]
     pw = config["PASSWORD"]
+    data_path = config["DATA_PATH"]
+    instagram_profile = config["INSTAGRAM_PROFILE"]
+    user_timezone = config["USER_TIMEZONE"]
 
     loader = instaloader.Instaloader(
         download_video_thumbnails=False
@@ -23,11 +26,8 @@ if __name__ == "__main__":
     # If you want to download stories from private profiles, you need to login with your Instagram credentials.
     loader.login(user=user, passwd=pw)
 
-    # Define the profile name
-    profile_name = "illenium"
-
     # Retrieve the profile metadata
-    profile = instaloader.Profile.from_username(loader.context, profile_name)
+    profile = instaloader.Profile.from_username(loader.context, instagram_profile)
 
     stories = loader.get_stories(userids=[profile.userid])
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
             dir_name = local_timestamp.strftime('%Y-%m-%d')
 
-            loader.dirname_pattern = f"stories/{dir_name}/"
+            loader.dirname_pattern = f"{data_path}{dir_name}/"
             loader.filename_pattern = f'{date}'
             loader.download_storyitem(item, target='')
 

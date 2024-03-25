@@ -15,7 +15,7 @@ def split_list(ls, chunk_size):
 
 
 if __name__ == "__main__":
-    logger.add("insta-archive.log")
+    logger.add("insta-download.log")
     start_time = time.time()
     logger.info("Start script to upload instagram stories.")
 
@@ -24,15 +24,17 @@ if __name__ == "__main__":
 
     user = config["USER"]
     pw = config["PASSWORD"]
+    data_path = config["DATA_PATH"]
+    user_timezone = config["USER_TIMEZONE"]
+    instagram_caption = config["INSTAGRAM_CAPTION"]
 
     upload_image = False
     upload_video = False
-    data_dir = "data/"
 
     # Convert local time to destination time
-    local_timestamp_org = datetime(2024, 3, 24, 7, 10, 0)
-    denver_timezone = pytz.timezone('US/Mountain')
-    local_timestamp = local_timestamp_org.astimezone(denver_timezone)
+    local_timestamp_org = datetime.now()  # datetime(2024, 3, 24, 7, 10, 0)
+    user_timezone_object = pytz.timezone(user_timezone)
+    local_timestamp = local_timestamp_org.astimezone(user_timezone_object)
     local_timestamp = local_timestamp - timedelta(minutes=30)
 
     date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     date_caption = local_timestamp.strftime('%d.%m.%Y')
     logger.info(f"Converted local time to destination time. Destination time: {date}")
 
-    dir_path = f"{data_dir}{date_dir}"
+    dir_path = f"{data_path}{date_dir}"
 
     fp_images = glob.glob(f"{dir_path}/*.jpg")
     fp_images = [file for file in fp_images if not "edit" in file]
@@ -55,14 +57,14 @@ if __name__ == "__main__":
         for file in fp_images:
             preprocess_image(file)
 
-        fps_edited = glob.glob(f"data/{date_dir}/*_edited.jpg")
+        fps_edited = glob.glob(f"{dir_path}/*_edited.jpg")
         num_edited_img = len(fps_edited)
         if num_img == num_edited_img:
             logger.success(f"Successfully preprocessed all images ({num_edited_img}/{num_img}).")
         else:
             logger.warning(f"Preprocessed only {num_edited_img}/{num_img} images.")
 
-    fp_videos = glob.glob(f"data/{date_dir}/*.mp4")
+    fp_videos = glob.glob(f"{dir_path}/*.mp4")
     fp_videos.sort()
     num_video = len(fp_videos)
     logger.info(f"Select MP4 files from date folder: {date_dir}. Found {num_video} videos.")
@@ -84,7 +86,7 @@ if __name__ == "__main__":
         except Exception as e:
             logger.exception(e)
 
-        caption = f"ILLENIUM IG Story | {date_caption}"
+        caption = f"{instagram_caption} | {date_caption}"
         logger.info(f"Caption for Instagram post: {caption}")
 
         if upload_image:
