@@ -73,7 +73,6 @@ if __name__ == "__main__":
 
     if upload_image or upload_video:
         image_chunks = split_list(ls=fps_edited, chunk_size=10)
-        logger.info(f"Number of instagram posts: {len(image_chunks.keys())} image posts | {num_video} video posts")
 
         logger.info(f"Connect to Instagram via instagrapi.")
         try:
@@ -88,29 +87,38 @@ if __name__ == "__main__":
 
         caption = f"{instagram_caption} | {date_caption}"
         logger.info(f"Caption for Instagram post: {caption}")
+        logger.info(f"Number of instagram posts: {len(image_chunks.keys())} image posts | {num_video} video posts")
 
         if upload_image:
             for key, value in image_chunks.items():
                 num_images = len(value)
                 if num_images > 1:
                     try:
-                        logger.info(f"Upload post {key + 1} with {num_images} images to Instagram.")
+                        logger.info(
+                            f"Upload image post to Instagram. Number of images: {num_images}. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
                         cl.album_upload(
                             paths=value,
                             caption=caption
                         )
-                        logger.success(f"Successfully uploaded post {key + 1} with {num_images} to Instagram.")
+                        logger.success(
+                            f"Successfully uploaded image post. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
                     except Exception as e:
                         logger.warning(e)
                 else:
                     try:
                         fp_img = value[0]
-                        logger.info(f"Upload post {key + 1} with {num_images} images to Instagram.")
+                        logger.info(
+                            f"Upload image post to Instagram. Number of images: {num_images}. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
                         cl.photo_upload(
                             path=fp_img,
                             caption=caption
                         )
-                        logger.success(f"Successfully uploaded post {key + 1} with {num_images} to Instagram.")
+                        logger.success(
+                            f"Successfully uploaded image post. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
                     except Exception as e:
                         logger.warning(e)
 
@@ -122,7 +130,7 @@ if __name__ == "__main__":
                         path=fp_video,
                         caption=caption
                     )
-                    logger.success(f"Successfully uploaded {index + 1}/{num_video} video to Instagram.")
+                    logger.success(f"Successfully uploaded video post. ({index + 1}/{num_video} video posts)")
                 except Exception as e:
                     logger.warning(e)
 

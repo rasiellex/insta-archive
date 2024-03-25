@@ -8,7 +8,7 @@ from loguru import logger
 
 if __name__ == "__main__":
     logger.add("insta-upload.log")
-    logger.info("Start script to download instagram stories.")
+    logger.info("Start process: Download Instagram stories.")
 
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
@@ -51,3 +51,4 @@ if __name__ == "__main__":
             time.sleep(delay)
 
     logger.success("Successfully downloaded stories.")
+    logger.info(f"Finished process: Download Instagram stories. End script.")
