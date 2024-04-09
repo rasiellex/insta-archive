@@ -3,11 +3,40 @@ import time
 
 import instaloader
 import pytz
+import requests
 import yaml
 from loguru import logger
 
+
+def send_to_discord_webhook(webhook: str, log_file: str):
+    # Discord-Webhook-URL
+    webhook_url = webhook
+
+    # Daten für die POST-Anfrage
+
+    with open(log_file, 'r') as file:
+        content = file.readlines()
+
+        for line in content:
+            data = {
+                'content': line
+            }
+
+            # Senden der POST-Anfrage an den Discord-Webhook
+            response = requests.post(webhook_url, json=data)
+
+            # Überprüfen des Statuscodes der Antwort
+            if response.status_code == 204:
+                print('Nachricht erfolgreich an Discord gesendet.')
+                delay = random.randint(1, 6)
+                time.sleep(delay)
+            else:
+                print(f'Fehler beim Senden der Nachricht an Discord. Statuscode: {response.status_code}')
+
+
 if __name__ == "__main__":
-    logger.add("insta-upload.log")
+    log_file = "insta-download.log"
+    logger.add(log_file)
     logger.info("Start process: Download Instagram stories.")
 
     with open('config.yml', 'r') as file:
@@ -18,10 +47,26 @@ if __name__ == "__main__":
     data_path = config["DATA_PATH"]
     instagram_profile = config["INSTAGRAM_PROFILE"]
     user_timezone = config["USER_TIMEZONE"]
+    webhook = config["WEBHOOK_DOWNLOAD"]
 
     loader = instaloader.Instaloader(
         download_video_thumbnails=False
     )
+    try:
+        logger.info("Try to login via session file.")
+        loader.load_session_from_file(username=user, filename="session_instaloader.json")
+        logger.info(f"Successfully logged in to account: {user} via session file.")
+    except:
+        logger.info("Login via session file failed. Session file expired.")
+        try:
+            logger.info("Login in via credentials and save session file.")
+            loader.login(user=user, passwd=pw)
+            loader.save_session_to_file("session_instaloader.json")
+            logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
+        except Exception as e:
+            logger.exception(e)
+
+    loader.load_session_from_file(username=user, filename="session_instaloader.json")
 
     # If you want to download stories from private profiles, you need to login with your Instagram credentials.
     loader.login(user=user, passwd=pw)
@@ -52,3 +97,4 @@ if __name__ == "__main__":
 
     logger.success("Successfully downloaded stories.")
     logger.info(f"Finished process: Download Instagram stories. End script.")
+    send_to_discord_webhook(webhook=webhook, log_file=log_file)

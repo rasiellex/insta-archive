@@ -1,8 +1,9 @@
+import random
 import glob
 import time
 from datetime import datetime, timedelta
 
-import pytz
+import requests
 import yaml
 from instagrapi import Client
 from loguru import logger
@@ -10,12 +11,39 @@ from loguru import logger
 from prepare_image import preprocess_image
 
 
+def send_to_discord_webhook(webhook: str, log_file: str):
+    # Discord-Webhook-URL
+    webhook_url = webhook
+
+    # Daten für die POST-Anfrage
+
+    with open(log_file, 'r') as file:
+        content = file.readlines()
+
+        for line in content:
+            data = {
+                'content': line
+            }
+
+            # Senden der POST-Anfrage an den Discord-Webhook
+            response = requests.post(webhook_url, json=data)
+
+            # Überprüfen des Statuscodes der Antwort
+            if response.status_code == 204:
+                print('Nachricht erfolgreich an Discord gesendet.')
+                delay = random.randint(1, 6)
+                time.sleep(delay)
+            else:
+                print(f'Fehler beim Senden der Nachricht an Discord. Statuscode: {response.status_code}')
+
+
 def split_list(ls, chunk_size):
     return {i: ls[i:i + chunk_size] for i in range(0, len(ls), chunk_size)}
 
 
 if __name__ == "__main__":
-    logger.add("insta-upload.log")
+    log_file = "insta-upload.log"
+    logger.add(log_file)
     start_time = time.time()
     logger.info("Start process: Upload to Instagram.")
 
@@ -27,20 +55,36 @@ if __name__ == "__main__":
     data_path = config["DATA_PATH"]
     user_timezone = config["USER_TIMEZONE"]
     instagram_caption = config["INSTAGRAM_CAPTION"]
+    webhook = config["WEBHOOK_UPLOAD"]
 
     upload_image = False
     upload_video = False
 
     # Convert local time to destination time
-    local_timestamp_org = datetime.now()  # datetime(2024, 3, 24, 7, 10, 0)
-    user_timezone_object = pytz.timezone(user_timezone)
-    local_timestamp = local_timestamp_org.astimezone(user_timezone_object)
-    local_timestamp = local_timestamp - timedelta(minutes=30)
+    local_timestamp_org = datetime.now()
+    local_timestamp = local_timestamp_org - timedelta(hours=24)
 
-    date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
     date_dir = local_timestamp.strftime('%Y-%m-%d')
     date_caption = local_timestamp.strftime('%d.%m.%Y')
-    logger.info(f"Converted local time to destination time. Destination time: {date}")
+    logger.info(f"Local timestamp minus 24 hours: {date_dir}")
+
+    cl = Client()
+    # adds a random delay between 1 and 3 seconds after each request
+    cl.delay_range = [3, 10]
+    try:
+        logger.info("Try to login via session file.")
+        cl.load_settings("session_instagrapi.json")
+        cl.login(user, pw)
+        logger.info(f"Successfully logged in to account: {user} via session file.")
+    except:
+        logger.info("Login via session file failed. Session file expired.")
+        try:
+            logger.info("Login in via credentials and save session file.")
+            cl.login(user, pw)
+            cl.dump_settings("session_instagrapi.json")
+            logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
+        except Exception as e:
+            logger.exception(e)
 
     dir_path = f"{data_path}{date_dir}"
 
@@ -72,14 +116,18 @@ if __name__ == "__main__":
         upload_video = True
 
     if upload_image or upload_video:
-        image_chunks = split_list(ls=fps_edited, chunk_size=10)
+        if upload_image:
+            image_chunks = split_list(ls=fps_edited, chunk_size=10)
+            num_img_posts = len(image_chunks.keys())
+        else:
+            num_img_posts = 0
 
         logger.info(f"Connect to Instagram via instagrapi.")
         try:
             cl = Client()
             # adds a random delay between 1 and 3 seconds after each request
-            cl.delay_range = [1, 3]
-
+            cl.delay_range = [3, 10]
+            cl.load_settings("session_instagrapi.json")
             cl.login(user, pw)
             logger.info(f"Successfully logged in to account: {user}.")
         except Exception as e:
@@ -87,7 +135,7 @@ if __name__ == "__main__":
 
         caption = f"{instagram_caption} | {date_caption}"
         logger.info(f"Caption for Instagram post: {caption}")
-        logger.info(f"Number of instagram posts: {len(image_chunks.keys())} image posts | {num_video} video posts")
+        logger.info(f"Number of instagram posts: {num_img_posts} image posts | {num_video} video posts")
 
         if upload_image:
             for key, value in image_chunks.items():
@@ -126,9 +174,9 @@ if __name__ == "__main__":
             for index, fp_video in enumerate(fp_videos):
                 try:
                     logger.info(f"Upload {index + 1}/{num_video} video to Instagram.")
-                    cl.video_upload(
+                    cl.clip_upload(
                         path=fp_video,
-                        caption=caption
+                        caption=caption,
                     )
                     logger.success(f"Successfully uploaded video post. ({index + 1}/{num_video} video posts)")
                 except Exception as e:
@@ -140,3 +188,4 @@ if __name__ == "__main__":
     total_time = int(round((time.time() - start_time)))
     total_time = str(timedelta(seconds=total_time))
     logger.info(f"Finished process: Upload to Instagram. End script. Elapsed time: {total_time}")
+    send_to_discord_webhook(webhook=webhook, log_file=log_file)
