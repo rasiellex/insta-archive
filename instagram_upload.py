@@ -8,12 +8,10 @@ import yaml
 from instagrapi import Client
 from loguru import logger
 
-from prepare_image import preprocess_image
+from prepare_image import preprocess_image_for_instagram
 
 
-def send_to_discord_webhook(webhook: str, log_file: str):
-    # Discord-Webhook-URL
-    webhook_url = webhook
+def send_to_discord_webhook(webhook_url: str, log_file: str):
 
     # Daten für die POST-Anfrage
 
@@ -55,7 +53,7 @@ if __name__ == "__main__":
     data_path = config["DATA_PATH"]
     user_timezone = config["USER_TIMEZONE"]
     instagram_caption = config["INSTAGRAM_CAPTION"]
-    webhook = config["WEBHOOK_UPLOAD"]
+    webhook_discord = config["WEBHOOK_UPLOAD"]
 
     upload_image = False
     upload_video = False
@@ -89,7 +87,7 @@ if __name__ == "__main__":
     dir_path = f"{data_path}{date_dir}"
 
     fp_images = glob.glob(f"{dir_path}/*.jpg")
-    fp_images = [file for file in fp_images if not "edit" in file]
+    fp_images = [file for file in fp_images if "edit" not in file]
     fp_images.sort()
     num_img = len(fp_images)
 
@@ -99,7 +97,7 @@ if __name__ == "__main__":
         upload_image = True
         logger.info(f"Preprocess images for instagram.")
         for file in fp_images:
-            preprocess_image(file)
+            preprocess_image_for_instagram(file)
 
         fps_edited = glob.glob(f"{dir_path}/*_edited.jpg")
         num_edited_img = len(fps_edited)
@@ -188,4 +186,4 @@ if __name__ == "__main__":
     total_time = int(round((time.time() - start_time)))
     total_time = str(timedelta(seconds=total_time))
     logger.info(f"Finished process: Upload to Instagram. End script. Elapsed time: {total_time}")
-    send_to_discord_webhook(webhook=webhook, log_file=log_file)
+    send_to_discord_webhook(webhook=webhook_discord, log_file=log_file)

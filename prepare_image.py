@@ -7,7 +7,7 @@ from PIL import Image
 from loguru import logger
 
 
-def preprocess_image(img_path: str):
+def preprocess_image_for_instagram(img_path: str):
     logger.info(f"Preprocess image for instagram: {img_path}")
     input_dir = os.path.dirname(img_path)
     filename = os.path.splitext(os.path.basename(img_path))
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     dir_name = local_timestamp.strftime('%Y-%m-%d')
 
     fps = glob.glob(f"data/{dir_name}/*.jpg")
-    fps = [file for file in fps if not "edit" in file]
+    fps = [file for file in fps if "edit" not in file]
 
     for file in fps:
-        preprocess_image(file)
+        preprocess_image_for_instagram(file)
