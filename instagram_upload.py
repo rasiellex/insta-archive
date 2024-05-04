@@ -109,9 +109,6 @@ if __name__ == "__main__":
         logger.info(f"Caption for Instagram post: {caption}")
         logger.info(f"Number of instagram posts: {num_img_posts} image posts | {num_video} video posts")
 
-        # usertag = [Usertag(x=10, y=10, user=UserShort(username="illenium", pk="325838884"))]
-        # usertag = [Usertag(x=10, y=10, user="illenium")]
-
         if upload_image:
             for key, value in image_chunks.items():
                 num_images = len(value)
@@ -123,7 +120,6 @@ if __name__ == "__main__":
                         cl.album_upload(
                             paths=value,
                             caption=caption,
-                            # usertags=usertag
                         )
                         logger.success(
                             f"Successfully uploaded image post. "
@@ -139,7 +135,6 @@ if __name__ == "__main__":
                         cl.photo_upload(
                             path=fp_img,
                             caption=caption,
-                            # usertags=usertag
 
                         )
                         logger.success(
@@ -155,7 +150,6 @@ if __name__ == "__main__":
                     cl.clip_upload(
                         path=fp_video,
                         caption=caption,
-                        # usertags=usertag
                     )
                     logger.success(f"Successfully uploaded video post. ({index + 1}/{num_video} video posts)")
                 except Exception as e:
