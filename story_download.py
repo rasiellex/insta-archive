@@ -3,36 +3,10 @@ import time
 
 import instaloader
 import pytz
-import requests
 import yaml
 from loguru import logger
 
-
-def send_to_discord_webhook(webhook: str, log_file: str):
-    # Discord-Webhook-URL
-    webhook_url = webhook
-
-    # Daten für die POST-Anfrage
-
-    with open(log_file, 'r') as file:
-        content = file.readlines()
-
-        for line in content:
-            data = {
-                'content': line
-            }
-
-            # Senden der POST-Anfrage an den Discord-Webhook
-            response = requests.post(webhook_url, json=data)
-
-            # Überprüfen des Statuscodes der Antwort
-            if response.status_code == 204:
-                print('Nachricht erfolgreich an Discord gesendet.')
-                delay = random.randint(1, 6)
-                time.sleep(delay)
-            else:
-                print(f'Fehler beim Senden der Nachricht an Discord. Statuscode: {response.status_code}')
-
+from helper_functions import send_to_discord_webhook
 
 if __name__ == "__main__":
     log_file = "insta-download.log"
@@ -42,12 +16,12 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    user = config["USER"]
-    pw = config["PASSWORD"]
+    user = config["INSTA"]["USER"]
+    pw = config["INSTA"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     instagram_profile = config["INSTAGRAM_PROFILE"]
     user_timezone = config["USER_TIMEZONE"]
-    webhook = config["WEBHOOK_DOWNLOAD"]
+    webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
 
     loader = instaloader.Instaloader(
         download_video_thumbnails=False
@@ -97,4 +71,7 @@ if __name__ == "__main__":
 
     logger.success("Successfully downloaded stories.")
     logger.info(f"Finished process: Download Instagram stories. End script.")
-    send_to_discord_webhook(webhook=webhook, log_file=log_file)
+
+    with open(log_file, 'r') as file:
+        log_content = file.readlines()
+        [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]

@@ -1,38 +1,12 @@
-import random
 import glob
 import time
 from datetime import datetime, timedelta
 
-import requests
 import yaml
 from instagrapi import Client
 from loguru import logger
 
-from prepare_image import preprocess_image_for_instagram
-
-
-def send_to_discord_webhook(webhook_url: str, log_file: str):
-
-    # Daten für die POST-Anfrage
-
-    with open(log_file, 'r') as file:
-        content = file.readlines()
-
-        for line in content:
-            data = {
-                'content': line
-            }
-
-            # Senden der POST-Anfrage an den Discord-Webhook
-            response = requests.post(webhook_url, json=data)
-
-            # Überprüfen des Statuscodes der Antwort
-            if response.status_code == 204:
-                print('Nachricht erfolgreich an Discord gesendet.')
-                delay = random.randint(1, 6)
-                time.sleep(delay)
-            else:
-                print(f'Fehler beim Senden der Nachricht an Discord. Statuscode: {response.status_code}')
+from helper_functions import preprocess_image_for_instagram, send_to_discord_webhook
 
 
 def split_list(ls, chunk_size):
@@ -48,12 +22,12 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    user = config["USER"]
-    pw = config["PASSWORD"]
+    user = config["INSTA"]["USER"]
+    pw = config["INSTA"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     user_timezone = config["USER_TIMEZONE"]
-    instagram_caption = config["INSTAGRAM_CAPTION"]
-    webhook_discord = config["WEBHOOK_UPLOAD"]
+    instagram_caption = config["CAPTION"]
+    webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_UPLOAD"]
 
     upload_image = False
     upload_video = False
@@ -135,6 +109,9 @@ if __name__ == "__main__":
         logger.info(f"Caption for Instagram post: {caption}")
         logger.info(f"Number of instagram posts: {num_img_posts} image posts | {num_video} video posts")
 
+        # usertag = [Usertag(x=10, y=10, user=UserShort(username="illenium", pk="325838884"))]
+        # usertag = [Usertag(x=10, y=10, user="illenium")]
+
         if upload_image:
             for key, value in image_chunks.items():
                 num_images = len(value)
@@ -145,7 +122,8 @@ if __name__ == "__main__":
                             f"({key + 1}/{len(image_chunks.keys())} image posts)")
                         cl.album_upload(
                             paths=value,
-                            caption=caption
+                            caption=caption,
+                            # usertags=usertag
                         )
                         logger.success(
                             f"Successfully uploaded image post. "
@@ -160,7 +138,9 @@ if __name__ == "__main__":
                             f"({key + 1}/{len(image_chunks.keys())} image posts)")
                         cl.photo_upload(
                             path=fp_img,
-                            caption=caption
+                            caption=caption,
+                            # usertags=usertag
+
                         )
                         logger.success(
                             f"Successfully uploaded image post. "
@@ -175,6 +155,7 @@ if __name__ == "__main__":
                     cl.clip_upload(
                         path=fp_video,
                         caption=caption,
+                        # usertags=usertag
                     )
                     logger.success(f"Successfully uploaded video post. ({index + 1}/{num_video} video posts)")
                 except Exception as e:
@@ -186,4 +167,6 @@ if __name__ == "__main__":
     total_time = int(round((time.time() - start_time)))
     total_time = str(timedelta(seconds=total_time))
     logger.info(f"Finished process: Upload to Instagram. End script. Elapsed time: {total_time}")
-    send_to_discord_webhook(webhook=webhook_discord, log_file=log_file)
+    with open(log_file, 'r') as file:
+        log_content = file.readlines()
+        [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]

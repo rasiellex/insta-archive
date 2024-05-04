@@ -1,13 +1,48 @@
 import glob
 import os
-from datetime import datetime, timedelta
+import random
+import time
 
-import pytz
+import requests
 from PIL import Image
 from loguru import logger
 
 
+def send_to_discord_webhook(webhook_url: str, input_text: str) -> None:
+    """Send text to discord channel via webhook.
+
+    Args:
+        webhook_url: Webhook
+        input_text: text
+
+    Returns:
+
+    """
+    data = {
+        'content': input_text
+    }
+
+    # Senden der POST-Anfrage an den Discord-Webhook
+    response = requests.post(webhook_url, json=data)
+
+    # Überprüfen des Statuscodes der Antwort
+    if response.status_code == 204:
+        print('Message successfully sent to Discord.')
+        delay = random.randint(1, 6)
+        time.sleep(delay)
+    else:
+        print(f'An error occurred while sending a message to Discord. Status code: {response.status_code}')
+
+
 def preprocess_image_for_instagram(img_path: str):
+    """Resize an image in ratio 1:1
+
+    Args:
+        img_path: Path to image
+
+    Returns:
+        None
+    """
     logger.info(f"Preprocess image for instagram: {img_path}")
     input_dir = os.path.dirname(img_path)
     filename = os.path.splitext(os.path.basename(img_path))
@@ -16,7 +51,6 @@ def preprocess_image_for_instagram(img_path: str):
 
     img = Image.open(img_path)
 
-    # get dimensions of original image
     original_width, original_height = img.size
 
     # define target ratio for instagram post (1:1)
@@ -30,35 +64,19 @@ def preprocess_image_for_instagram(img_path: str):
         new_width = int(original_height * target_ratio)
         new_height = original_height
 
-    # create a new image with black background
     new_image = Image.new("RGB", (new_width, new_height), "black")
 
     # calculate the position to paste the image
     paste_position = ((new_width - original_width) // 2, (new_height - original_height) // 2)
 
-    # paste the original image onto the new image
     new_image.paste(img, paste_position)
 
-    # save the result
     new_image.save(output_path)
     logger.info(f"Sucessfully preprocessed and saved new image. Path to file: {output_path}")
 
 
 if __name__ == "__main__":
-    logger.add("insta-archive.log")
-
-    local_timestamp_org = datetime(2024, 3, 24, 7, 10, 0)
-
-    # Convert it to GMT-6
-    denver_timezone = pytz.timezone('US/Mountain')
-    local_timestamp = local_timestamp_org.astimezone(denver_timezone)
-
-    local_timestamp = local_timestamp - timedelta(minutes=30)
-
-    date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
-    dir_name = local_timestamp.strftime('%Y-%m-%d')
-
-    fps = glob.glob(f"data/{dir_name}/*.jpg")
+    fps = glob.glob("data/*.jpg")
     fps = [file for file in fps if "edit" not in file]
 
     for file in fps:
