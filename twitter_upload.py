@@ -41,6 +41,7 @@ if __name__ == "__main__":
 
     fp_images = glob(f"{dir_path}/*.jpg")
     fp_videos = glob(f"{dir_path}/*.mp4")
+    fp_images = [file for file in fp_images if "edit" not in file]
 
     fp_media = fp_images + fp_videos
     fp_media.sort()
