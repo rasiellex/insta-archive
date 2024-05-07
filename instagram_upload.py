@@ -105,7 +105,7 @@ if __name__ == "__main__":
         except Exception as e:
             logger.exception(e)
 
-        caption = f"{instagram_caption} | {date_caption}"
+        caption = f"{instagram_caption} | {date_caption} \n\n\n #illenium #illenials #illeniumintel #nickmiller #edm"
         logger.info(f"Caption for Instagram post: {caption}")
         logger.info(f"Number of instagram posts: {num_img_posts} image posts | {num_video} video posts")
 
