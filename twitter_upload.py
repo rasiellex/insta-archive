@@ -38,7 +38,6 @@ if __name__ == "__main__":
     logger.info(f"Local timestamp minus 24 hours: {date_dir}")
 
     dir_path = f"{data_path}{date_dir}"
-    dir_path = "D:/PyCharm/insta-archive/data/2024-04-17"
 
     fp_images = glob(f"{dir_path}/*.jpg")
     fp_videos = glob(f"{dir_path}/*.mp4")
