@@ -40,11 +40,6 @@ if __name__ == "__main__":
         except Exception as e:
             logger.exception(e)
 
-    loader.load_session_from_file(username=user, filename="session_instaloader.json")
-
-    # If you want to download stories from private profiles, you need to login with your Instagram credentials.
-    loader.login(user=user, passwd=pw)
-
     # Retrieve the profile metadata
     profile = instaloader.Profile.from_username(loader.context, instagram_profile)
 
