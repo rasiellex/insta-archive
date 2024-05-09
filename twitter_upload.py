@@ -18,6 +18,7 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
+    user = config["TWITTER"]["USER"]
     consumer_key = config["TWITTER"]["CONSUMER_KEY"]
     consumer_secret = config["TWITTER"]["CONSUMER_SECRET"]
     access_token = config["TWITTER"]["ACCESS_TOKEN"]
@@ -85,11 +86,11 @@ if __name__ == "__main__":
             )
             logger.success(f"Successfully uploaded media file {file_basename}. "
                            f"Upload status: {index + 1}/{num_media}. \n "
-                           f" Link to post: https://twitter.com/user/status/{response.data['id']}")
+                           f" Link to post: https://twitter.com/{user}/status/{response.data['id']}")
 
     total_time = int(round((time.time() - start_time)))
     total_time = str(timedelta(seconds=total_time))
-    logger.info(f"Finished process: Upload to Instagram. End script. Elapsed time: {total_time}")
+    logger.info(f"Finished process: Upload to Twitter. End script. Elapsed time: {total_time}")
 
     with open(log_file, 'r') as file:
         log_content = file.readlines()
