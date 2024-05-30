@@ -22,7 +22,7 @@ if __name__ == "__main__":
     instagram_profile = config["INSTAGRAM_PROFILE"]
     user_timezone = config["USER_TIMEZONE"]
     webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
-    webhook_discord_alert = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
+    webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
 
     try:
         loader = instaloader.Instaloader(

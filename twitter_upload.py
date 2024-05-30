@@ -29,7 +29,7 @@ if __name__ == "__main__":
     user_timezone = config["USER_TIMEZONE"]
     instagram_caption = config["CAPTION"]
     webhook_discord = config["DISCORD"]["WEBHOOK_TWITTER_UPLOAD"]
-    webhook_discord_alert = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
+    webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
 
     try:
         # Convert local time to destination time
