@@ -53,25 +53,21 @@ if __name__ == "__main__":
         num_media = len(fp_media)
 
         logger.info(
-            f"Select media files from date folder: {dir_path}. Found {num_media} media files. Images: {num_images} | Videos: {num_videos}")
+            f"Select media files from date folder: {dir_path}. Found {num_media} media files. "
+            f"Images: {num_images} | Videos: {num_videos}")
 
         if num_media > 0:
-            try:
-                logger.info("Login in to Twitter account.")
-                auth = tweepy.OAuthHandler(consumer_key=consumer_key, consumer_secret=consumer_secret,
-                                           access_token=access_token, access_token_secret=access_token_secret)
-                api = tweepy.API(auth=auth)
+            logger.info("Login in to Twitter account.")
+            auth = tweepy.OAuthHandler(consumer_key=consumer_key, consumer_secret=consumer_secret,
+                                       access_token=access_token, access_token_secret=access_token_secret)
+            api = tweepy.API(auth=auth)
 
-                client = tweepy.Client(
-                    # bearer_token=bearer_token,
-                    consumer_key=consumer_key, consumer_secret=consumer_secret,
-                    access_token=access_token, access_token_secret=access_token_secret
-                )
+            client = tweepy.Client(
+                consumer_key=consumer_key, consumer_secret=consumer_secret,
+                access_token=access_token, access_token_secret=access_token_secret
+            )
 
-                logger.info("Successfully logged in to account.")
-
-            except Exception as e:
-                logger.exception(e)
+            logger.info("Successfully logged in to account.")
 
             caption = f"{instagram_caption} | {date_caption}"
             logger.info(f"Caption for Twitter post: {caption}")
@@ -100,6 +96,9 @@ if __name__ == "__main__":
 
     except Exception as e:
         logger.info("Script failed.")
+        logger.exception(e)
         error_message = str(e)
-        send_to_discord_webhook(webhook_url=webhook_discord_alert, input_text="ERROR: Twitter upload script failed.")
-        send_to_discord_webhook(webhook_url=webhook_discord_alert, input_text=error_message)
+        send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                input_text="ERROR: Twitter upload script failed.")
+        send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                input_text=error_message)

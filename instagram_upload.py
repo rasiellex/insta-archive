@@ -58,7 +58,13 @@ if __name__ == "__main__":
                 cl.dump_settings("session_instagrapi.json")
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
+                logger.info("Script failed.")
                 logger.exception(e)
+                error_message = str(e)
+                send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                        input_text="ERROR: Instagram upload script failed.")
+                send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                        input_text=error_message)
 
         dir_path = f"{data_path}{date_dir}"
 
@@ -96,18 +102,8 @@ if __name__ == "__main__":
             else:
                 num_img_posts = 0
 
-            logger.info(f"Connect to Instagram via instagrapi.")
-            try:
-                cl = Client()
-                # adds a random delay between 1 and 3 seconds after each request
-                cl.delay_range = [3, 10]
-                cl.load_settings("session_instagrapi.json")
-                cl.login(user, pw)
-                logger.info(f"Successfully logged in to account: {user}.")
-            except Exception as e:
-                logger.exception(e)
-
-            caption = f"{instagram_caption} | {date_caption} \n\n\n #illenium #illenials #illeniumintel #nickmiller #edm"
+            caption = (f"{instagram_caption} | {date_caption} \n\n\n "
+                       f"#illenium #illenials #illeniumintel #nickmiller #edm")
             logger.info(f"Caption for Instagram post: {caption}")
             logger.info(f"Number of instagram posts: {num_img_posts} image posts | {num_video} video posts")
 
@@ -115,47 +111,38 @@ if __name__ == "__main__":
                 for key, value in image_chunks.items():
                     num_images = len(value)
                     if num_images > 1:
-                        try:
-                            logger.info(
-                                f"Upload image post to Instagram. Number of images: {num_images}. "
-                                f"({key + 1}/{len(image_chunks.keys())} image posts)")
-                            cl.album_upload(
-                                paths=value,
-                                caption=caption,
-                            )
-                            logger.success(
-                                f"Successfully uploaded image post. "
-                                f"({key + 1}/{len(image_chunks.keys())} image posts)")
-                        except Exception as e:
-                            logger.warning(e)
+                        logger.info(
+                            f"Upload image post to Instagram. Number of images: {num_images}. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
+                        cl.album_upload(
+                            paths=value,
+                            caption=caption,
+                        )
+                        logger.success(
+                            f"Successfully uploaded image post. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
                     else:
-                        try:
-                            fp_img = value[0]
-                            logger.info(
-                                f"Upload image post to Instagram. Number of images: {num_images}. "
-                                f"({key + 1}/{len(image_chunks.keys())} image posts)")
-                            cl.photo_upload(
-                                path=fp_img,
-                                caption=caption,
+                        fp_img = value[0]
+                        logger.info(
+                            f"Upload image post to Instagram. Number of images: {num_images}. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
+                        cl.photo_upload(
+                            path=fp_img,
+                            caption=caption,
 
-                            )
-                            logger.success(
-                                f"Successfully uploaded image post. "
-                                f"({key + 1}/{len(image_chunks.keys())} image posts)")
-                        except Exception as e:
-                            logger.warning(e)
+                        )
+                        logger.success(
+                            f"Successfully uploaded image post. "
+                            f"({key + 1}/{len(image_chunks.keys())} image posts)")
 
             if upload_video:
                 for index, fp_video in enumerate(fp_videos):
-                    try:
-                        logger.info(f"Upload {index + 1}/{num_video} video to Instagram.")
-                        cl.clip_upload(
-                            path=fp_video,
-                            caption=caption,
-                        )
-                        logger.success(f"Successfully uploaded video post. ({index + 1}/{num_video} video posts)")
-                    except Exception as e:
-                        logger.warning(e)
+                    logger.info(f"Upload {index + 1}/{num_video} video to Instagram.")
+                    cl.clip_upload(
+                        path=fp_video,
+                        caption=caption,
+                    )
+                    logger.success(f"Successfully uploaded video post. ({index + 1}/{num_video} video posts)")
 
         else:
             logger.info(f"No files found to upload for date {date_dir}.")
@@ -163,11 +150,16 @@ if __name__ == "__main__":
         total_time = int(round((time.time() - start_time)))
         total_time = str(timedelta(seconds=total_time))
         logger.info(f"Finished process: Upload to Instagram. End script. Elapsed time: {total_time}")
+
         with open(log_file, 'r') as file:
             log_content = file.readlines()
             [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
+
     except Exception as e:
         logger.info("Script failed.")
+        logger.exception(e)
         error_message = str(e)
-        send_to_discord_webhook(webhook_url=webhook_discord_alert, input_text="ERROR: Instagram upload script failed.")
-        send_to_discord_webhook(webhook_url=webhook_discord_alert, input_text=error_message)
+        send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                input_text="ERROR: Instagram upload script failed.")
+        send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                input_text=error_message)

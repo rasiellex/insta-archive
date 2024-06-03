@@ -39,9 +39,16 @@ if __name__ == "__main__":
                 logger.info("Login in via credentials and save session file.")
                 loader.login(user=user, passwd=pw)
                 loader.save_session_to_file("session_instaloader")
+                loader.test_login()
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
+                logger.info("Script failed.")
                 logger.exception(e)
+                error_message = str(e)
+                send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                        input_text="ERROR: Instagram download script failed.")
+                send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                        input_text=error_message)
 
         # Retrieve the profile metadata
         profile = instaloader.Profile.from_username(loader.context, instagram_profile)
@@ -50,33 +57,29 @@ if __name__ == "__main__":
 
         downloaded_items = 0
 
-        try:
-            for story in stories:
+        for story in stories:
 
-                num_stories = story.itemcount
-                logger.info(f"Number of stories found: {num_stories}")
-                for item in story.get_items():
-                    local_timestamp = item.date_utc
+            num_stories = story.itemcount
+            logger.info(f"Number of stories found: {num_stories}")
+            for item in story.get_items():
+                local_timestamp = item.date_utc
 
-                    # Convert it to GMT-6
-                    denver_timezone = pytz.timezone('US/Mountain')
-                    local_timestamp = local_timestamp.astimezone(denver_timezone)
+                # Convert it to GMT-6
+                denver_timezone = pytz.timezone('US/Mountain')
+                local_timestamp = local_timestamp.astimezone(denver_timezone)
 
-                    date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
-                    dir_name = local_timestamp.strftime('%Y-%m-%d')
+                date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
+                dir_name = local_timestamp.strftime('%Y-%m-%d')
 
-                    loader.dirname_pattern = f"{data_path}{dir_name}/"
-                    loader.filename_pattern = f'{date}'
-                    loader.download_storyitem(item, target='')
+                loader.dirname_pattern = f"{data_path}{dir_name}/"
+                loader.filename_pattern = f'{date}'
+                loader.download_storyitem(item, target='')
 
-                    downloaded_items += 1
-                    logger.info(f"Download progress: {downloaded_items} of {num_stories} items downloaded.")
-                    delay = random.randint(4, 10)
-                    time.sleep(delay)
-                logger.success(f"Successfully downloaded {num_stories} stories.")
-
-        except Exception as e:
-            logger.exception(e)
+                downloaded_items += 1
+                logger.info(f"Download progress: {downloaded_items} of {num_stories} items downloaded.")
+                delay = random.randint(4, 10)
+                time.sleep(delay)
+            logger.success(f"Successfully downloaded {num_stories} stories.")
 
         if downloaded_items == 0:
             logger.info("No stories found.")
@@ -85,8 +88,12 @@ if __name__ == "__main__":
         with open(log_file, 'r') as file:
             log_content = file.readlines()
             [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
+
     except Exception as e:
         logger.info("Script failed.")
+        logger.exception(e)
         error_message = str(e)
-        send_to_discord_webhook(webhook_url=webhook_discord_alert, input_text="ERROR: Instagram download script failed.")
-        send_to_discord_webhook(webhook_url=webhook_discord_alert, input_text=error_message)
+        send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                input_text="ERROR: Instagram download script failed.")
+        send_to_discord_webhook(webhook_url=webhook_discord_alert,
+                                input_text=error_message)
