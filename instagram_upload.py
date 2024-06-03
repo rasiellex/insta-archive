@@ -1,5 +1,6 @@
 import glob
 import time
+import traceback
 from datetime import datetime, timedelta
 
 import yaml
@@ -58,13 +59,7 @@ if __name__ == "__main__":
                 cl.dump_settings("session_instagrapi.json")
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
-                logger.info("Script failed.")
-                logger.exception(e)
-                error_message = str(e)
-                send_to_discord_webhook(webhook_url=webhook_discord_alert,
-                                        input_text="ERROR: Instagram upload script failed.")
-                send_to_discord_webhook(webhook_url=webhook_discord_alert,
-                                        input_text=error_message)
+                raise
 
         dir_path = f"{data_path}{date_dir}"
 
@@ -151,15 +146,16 @@ if __name__ == "__main__":
         total_time = str(timedelta(seconds=total_time))
         logger.info(f"Finished process: Upload to Instagram. End script. Elapsed time: {total_time}")
 
-        with open(log_file, 'r') as file:
-            log_content = file.readlines()
-            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
-
     except Exception as e:
         logger.info("Script failed.")
         logger.exception(e)
-        error_message = str(e)
+        error_message = traceback.format_exc()
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text="ERROR: Instagram upload script failed.")
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text=error_message)
+
+    finally:
+        with open(log_file, 'r') as file:
+            log_content = file.readlines()
+            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]

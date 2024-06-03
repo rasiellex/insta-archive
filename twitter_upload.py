@@ -6,6 +6,7 @@ from glob import glob
 import tweepy
 import yaml
 from loguru import logger
+import traceback
 
 from helper_functions import send_to_discord_webhook
 
@@ -90,15 +91,17 @@ if __name__ == "__main__":
         total_time = str(timedelta(seconds=total_time))
         logger.info(f"Finished process: Upload to Twitter. End script. Elapsed time: {total_time}")
 
-        with open(log_file, 'r') as file:
-            log_content = file.readlines()
-            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
 
     except Exception as e:
         logger.info("Script failed.")
         logger.exception(e)
-        error_message = str(e)
+        error_message = traceback.format_exc()
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text="ERROR: Twitter upload script failed.")
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text=error_message)
+
+    finally:
+        with open(log_file, 'r') as file:
+            log_content = file.readlines()
+            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]

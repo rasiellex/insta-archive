@@ -1,5 +1,6 @@
 import random
 import time
+import traceback
 
 import instaloader
 import pytz
@@ -42,13 +43,7 @@ if __name__ == "__main__":
                 loader.test_login()
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
-                logger.info("Script failed.")
-                logger.exception(e)
-                error_message = str(e)
-                send_to_discord_webhook(webhook_url=webhook_discord_alert,
-                                        input_text="ERROR: Instagram download script failed.")
-                send_to_discord_webhook(webhook_url=webhook_discord_alert,
-                                        input_text=error_message)
+                raise
 
         # Retrieve the profile metadata
         profile = instaloader.Profile.from_username(loader.context, instagram_profile)
@@ -85,15 +80,16 @@ if __name__ == "__main__":
             logger.info("No stories found.")
         logger.info("Finished process: Download Instagram stories. End script.")
 
-        with open(log_file, 'r') as file:
-            log_content = file.readlines()
-            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
-
     except Exception as e:
         logger.info("Script failed.")
         logger.exception(e)
-        error_message = str(e)
+        error_message = traceback.format_exc()
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text="ERROR: Instagram download script failed.")
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text=error_message)
+
+    finally:
+        with open(log_file, 'r') as file:
+            log_content = file.readlines()
+            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
