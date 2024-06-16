@@ -14,9 +14,9 @@ if __name__ == "__main__":
     logger.add(log_file)
     logger.info("Start process: Download Instagram stories.")
 
-    delay = random.randint(0, 60)
-    logger.info(f"Process will sleep for {delay} seconds.")
-    time.sleep(delay)
+    # delay = random.randint(0, 60)
+    # logger.info(f"Process will sleep for {delay} seconds.")
+    # time.sleep(delay)
 
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
@@ -96,4 +96,5 @@ if __name__ == "__main__":
     finally:
         with open(log_file, 'r') as file:
             log_content = file.readlines()
-            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
+            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content
+             if line != "\n"]
