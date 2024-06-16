@@ -14,6 +14,10 @@ if __name__ == "__main__":
     logger.add(log_file)
     logger.info("Start process: Download Instagram stories.")
 
+    delay = random.randint(0, 60)
+    logger.info(f"Process will sleep for {delay} seconds.")
+    time.sleep(delay)
+
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
