@@ -32,6 +32,7 @@ def send_to_discord_webhook(webhook_url: str, input_text: str) -> None:
         time.sleep(delay)
     else:
         print(f'An error occurred while sending a message to Discord. Status code: {response.status_code}')
+        print(f'Input text: {input_text}')
 
 
 def preprocess_image_for_instagram(img_path: str):
