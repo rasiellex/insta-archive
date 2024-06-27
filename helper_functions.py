@@ -28,10 +28,11 @@ def send_to_discord_webhook(webhook_url: str, input_text: str) -> None:
     # Überprüfen des Statuscodes der Antwort
     if response.status_code == 204:
         print('Message successfully sent to Discord.')
-        delay = random.randint(1, 6)
+        delay = random.randint(2, 6)
         time.sleep(delay)
     else:
         print(f'An error occurred while sending a message to Discord. Status code: {response.status_code}')
+        print(f'Input text: {input_text}')
 
 
 def preprocess_image_for_instagram(img_path: str):

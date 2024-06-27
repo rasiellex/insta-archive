@@ -1,3 +1,9 @@
 # Default ignored files
 .idea
 data/
+
+# specific files
+*.log
+config.yml
+session_instagrapi
+session_instaloader
