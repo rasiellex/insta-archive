@@ -19,24 +19,23 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    users = config["INSTA"]["USER"]
+    user = config["INSTA"]["USER"]
     pw = config["INSTA"]["PASSWORD"]
     data_path = config["DATA_PATH"]
-    instagram_profile = "gryffin"
+    instagram_profile = config["INSTAGRAM_PROFILE"]
+    profile_id = config["INSTAGRAM_PROFILE"]
     user_timezone = config["USER_TIMEZONE"]
     webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
     webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
 
     try:
-        user = random.choice(list(users.values()))
 
         cl = Client()
-
-        # adds a random delay between 1 and 3 seconds after each request
         cl.delay_range = [3, 10]
+
         try:
             logger.info("Try to login via session file.")
-            cl.load_settings(f"session_instagrapi_{user}")
+            cl.load_settings(f"session_instagrapi_{user}.json")
             cl.login(user, pw)
             logger.info(f"Successfully logged in to account: {user} via session file.")
         except:
@@ -44,19 +43,20 @@ if __name__ == "__main__":
             try:
                 logger.info("Login in via credentials and save session file.")
                 cl.login(user, pw)
-                cl.dump_settings(f"session_instagrapi_{user}")
+                cl.dump_settings(f"session_instagrapi_{user}.json")
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
                 logger.exception(e)
 
-            user_info = cl.user_info_by_username_v1('gryffin')  # user_info_by_username_v1
+            # user_info = cl.user_info_by_username_v1(instagram_profile)  # user_info_by_username_v1
+            # user_id = user_info.pk
 
-            user_id = user_info.pk
-            user_stories = cl.user_stories(user_id=user_id)
+            user_stories = cl.user_stories(user_id=profile_id)
             num_stories = len(user_stories)
             logger.info(f"Number of stories found: {num_stories}")
 
             downloaded_items = 0
+            skipped_items = 0
 
             for story in user_stories:
                 local_timestamp = story.taken_at
@@ -78,18 +78,22 @@ if __name__ == "__main__":
                 data_path = "test/"
                 dirname = f"{data_path}{dir_name}/"
                 filename = f'{date}'
+                filename_with_ext = filename + extension
 
                 if not os.path.exists(dirname):
                     os.makedirs(dirname)
 
-                if os.path.isfile(dirname + filename + extension):
+                if os.path.isfile(dirname + filename_with_ext):
+                    logger.info(f"File {filename_with_ext} already exists. Skip file.")
+                    skipped_items += 1
                     continue
 
                 cl.story_download(story.pk, filename=filename, folder=dirname)
                 downloaded_items += 1
-                logger.info(f"Download progress: {downloaded_items} of {num_stories} items downloaded.")
+                logger.info(f"Download progress: {downloaded_items}/{num_stories} items.")
 
-            logger.success(f"Successfully downloaded {num_stories} stories.")
+            logger.success(f"Successfully downloaded {downloaded_items} of {num_stories} stories. "
+                           f"Skipped files: {skipped_items}")
 
 
             if downloaded_items == 0:
@@ -108,4 +112,5 @@ if __name__ == "__main__":
     finally:
         with open(log_file, 'r') as file:
             log_content = file.readlines()
-            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content]
+            [send_to_discord_webhook(webhook_url=webhook_discord, input_text=line) for line in log_content
+             if line != "\n"]
