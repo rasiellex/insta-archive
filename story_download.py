@@ -70,12 +70,18 @@ if __name__ == "__main__":
                 date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
                 dir_name = local_timestamp.strftime('%Y-%m-%d')
 
+                if item.is_video:
+                    file_extension = '.mp4'
+                else:
+                    file_extension = '.jpg'
+
                 loader.dirname_pattern = f"{data_path}{dir_name}/"
                 loader.filename_pattern = f'{date}'
                 loader.download_storyitem(item, target='')
+                file_path = loader.dirname_pattern + loader.filename_pattern + file_extension
 
                 downloaded_items += 1
-                logger.info(f"Download progress: {downloaded_items} of {num_stories} items downloaded.")
+                logger.info(f"Downloaded story: {file_path} | Download progress: {downloaded_items}/{num_stories} items.")
                 delay = random.randint(4, 10)
                 time.sleep(delay)
             logger.success(f"Successfully downloaded {num_stories} stories.")
