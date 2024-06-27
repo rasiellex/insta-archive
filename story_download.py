@@ -1,8 +1,5 @@
-import random
-import time
 import traceback
 
-import instaloader
 import pytz
 import yaml
 from loguru import logger
@@ -23,7 +20,7 @@ if __name__ == "__main__":
     pw = config["INSTA"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     instagram_profile = config["INSTAGRAM_PROFILE"]
-    profile_id = config["INSTAGRAM_PROFILE"]
+    profile_id = config["INSTAGRAM_PROFILE_ID"]
     user_timezone = config["USER_TIMEZONE"]
     webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
     webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
@@ -51,54 +48,55 @@ if __name__ == "__main__":
             # user_info = cl.user_info_by_username_v1(instagram_profile)  # user_info_by_username_v1
             # user_id = user_info.pk
 
-            user_stories = cl.user_stories(user_id=profile_id)
-            num_stories = len(user_stories)
-            logger.info(f"Number of stories found: {num_stories}")
+        logger.info(f"Fetch stories from user {instagram_profile}.")
+        user_stories = cl.user_stories(user_id=profile_id)
+        num_stories = len(user_stories)
+        logger.info(f"Number of stories found: {num_stories}")
 
-            downloaded_items = 0
-            skipped_items = 0
+        downloaded_items = 0
+        skipped_items = 0
 
-            for story in user_stories:
-                local_timestamp = story.taken_at
-                local_timestamp = local_timestamp.replace(tzinfo=None)
+        for story in user_stories:
+            local_timestamp = story.taken_at
+            local_timestamp = local_timestamp.replace(tzinfo=None)
 
-                # Convert it to GMT-6
-                denver_timezone = pytz.timezone('US/Mountain')
-                local_timestamp = local_timestamp.astimezone(denver_timezone)
+            # Convert it to GMT-6
+            denver_timezone = pytz.timezone('US/Mountain')
+            local_timestamp = local_timestamp.astimezone(denver_timezone)
 
-                date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
-                dir_name = local_timestamp.strftime('%Y-%m-%d')
+            date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
+            dir_name = local_timestamp.strftime('%Y-%m-%d')
 
-                media_type = story.media_type
-                if media_type == 1:
-                    extension = ".jpg"
-                else:
-                    extension = ".mp4"
+            media_type = story.media_type
+            if media_type == 1:
+                extension = ".jpg"
+            else:
+                extension = ".mp4"
 
-                data_path = "test/"
-                dirname = f"{data_path}{dir_name}/"
-                filename = f'{date}'
-                filename_with_ext = filename + extension
+            data_path = "test/"
+            dirname = f"{data_path}{dir_name}/"
+            filename = f'{date}'
+            filename_with_ext = filename + extension
 
-                if not os.path.exists(dirname):
-                    os.makedirs(dirname)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
 
-                if os.path.isfile(dirname + filename_with_ext):
-                    logger.info(f"File {filename_with_ext} already exists. Skip file.")
-                    skipped_items += 1
-                    continue
+            if os.path.isfile(dirname + filename_with_ext):
+                logger.info(f"File {filename_with_ext} already exists. Skip file.")
+                skipped_items += 1
+                continue
 
-                cl.story_download(story.pk, filename=filename, folder=dirname)
-                downloaded_items += 1
-                logger.info(f"Download progress: {downloaded_items}/{num_stories} items.")
+            cl.story_download(story.pk, filename=filename, folder=dirname)
+            downloaded_items += 1
+            logger.info(f"Download progress: {downloaded_items}/{num_stories} items.")
 
-            logger.success(f"Successfully downloaded {downloaded_items} of {num_stories} stories. "
-                           f"Skipped files: {skipped_items}")
+        logger.success(f"Successfully downloaded {downloaded_items} of {num_stories} stories. "
+                       f"Skipped files: {skipped_items}")
 
 
-            if downloaded_items == 0:
-                logger.info("No stories found.")
-            logger.info("Finished process: Download Instagram stories. End script.")
+        if downloaded_items == 0 and skipped_items == 0:
+            logger.info("No stories found.")
+        logger.info("Finished process: Download Instagram stories. End script.")
 
     except Exception as e:
         logger.info("Script failed.")
