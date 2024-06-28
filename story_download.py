@@ -54,7 +54,7 @@ if __name__ == "__main__":
         logger.info(f"Number of stories found: {num_stories}")
 
         downloaded_items = 0
-        skipped_items = 0
+        skipped_items = []
 
         for story in user_stories:
             local_timestamp = story.taken_at
@@ -73,28 +73,28 @@ if __name__ == "__main__":
             else:
                 extension = ".mp4"
 
-            data_path = "test/"
             dirname = f"{data_path}{dir_name}/"
             filename = f'{date}'
             filename_with_ext = filename + extension
+            file_path = dirname + filename_with_ext
 
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
 
-            if os.path.isfile(dirname + filename_with_ext):
-                logger.info(f"File {filename_with_ext} already exists. Skip file.")
-                skipped_items += 1
+            if os.path.isfile(file_path):
+                logger.info(f"File already exists. Skip file: {file_path}")
+                skipped_items.append(filename_with_ext)
                 continue
 
             cl.story_download(story.pk, filename=filename, folder=dirname)
             downloaded_items += 1
-            logger.info(f"Download progress: {downloaded_items}/{num_stories} items.")
+            logger.info(f"Downloaded story: {file_path}. Download progress: {downloaded_items}/{num_stories}")
 
-        logger.success(f"Successfully downloaded {downloaded_items} of {num_stories} stories. "
-                       f"Skipped files: {skipped_items}")
+        logger.success(f"Successfully downloaded {downloaded_items}/{num_stories} stories. "
+                       f"Skipped files ({len(skipped_items)}): {", ".join(skipped_items)}")
 
 
-        if downloaded_items == 0 and skipped_items == 0:
+        if downloaded_items == 0 and len(skipped_items) == 0:
             logger.info("No stories found.")
         logger.info("Finished process: Download Instagram stories. End script.")
 
