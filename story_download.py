@@ -61,11 +61,14 @@ if __name__ == "__main__":
             num_stories = story.itemcount
             logger.info(f"Number of stories found: {num_stories}")
             for item in story.get_items():
-                local_timestamp = item.date_utc
+                utc_timestamp = item.date_utc
+
+                utc_timezone = pytz.timezone('UTC')
+                utc_timestamp = utc_timezone.localize(utc_timestamp)
 
                 # Convert it to GMT-6
                 denver_timezone = pytz.timezone('US/Mountain')
-                local_timestamp = local_timestamp.astimezone(denver_timezone)
+                local_timestamp = utc_timestamp.astimezone(denver_timezone)
 
                 date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
                 dir_name = local_timestamp.strftime('%Y-%m-%d')
