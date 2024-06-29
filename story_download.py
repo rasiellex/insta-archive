@@ -1,10 +1,12 @@
+import os
+import random
+import time
 import traceback
 
 import pytz
 import yaml
-from loguru import logger
 from instagrapi import Client
-import os
+from loguru import logger
 
 from helper_functions import send_to_discord_webhook
 
@@ -12,6 +14,10 @@ if __name__ == "__main__":
     log_file = "insta-download.log"
     logger.add(log_file)
     logger.info("Start process: Download Instagram stories.")
+
+    delay = random.randint(0, 60)
+    logger.info(f"Process will sleep for {delay} seconds.")
+    time.sleep(delay)
 
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
