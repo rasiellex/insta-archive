@@ -60,12 +60,11 @@ if __name__ == "__main__":
         skipped_items = []
 
         for story in user_stories:
-            local_timestamp = story.taken_at
-            local_timestamp = local_timestamp.replace(tzinfo=None)
+            utc_timestamp = story.taken_at
 
             # Convert it to GMT-6
             denver_timezone = pytz.timezone('US/Mountain')
-            local_timestamp = local_timestamp.astimezone(denver_timezone)
+            local_timestamp = utc_timestamp.astimezone(denver_timezone)
 
             date = local_timestamp.strftime('%Y-%m-%d-%H-%M-%S')
             dir_name = local_timestamp.strftime('%Y-%m-%d')
