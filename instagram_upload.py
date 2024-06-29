@@ -31,6 +31,9 @@ if __name__ == "__main__":
     webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_UPLOAD"]
     webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
 
+    session_filename_user = user.replace('.', '_')
+    session_filename = f"session_instagrapi_{session_filename_user}.json"
+
     try:
         upload_image = False
         upload_video = False
@@ -48,7 +51,7 @@ if __name__ == "__main__":
         cl.delay_range = [3, 10]
         try:
             logger.info("Try to login via session file.")
-            cl.load_settings("session_instagrapi.json")
+            cl.load_settings(session_filename)
             cl.login(user, pw)
             logger.info(f"Successfully logged in to account: {user} via session file.")
         except:
@@ -56,7 +59,7 @@ if __name__ == "__main__":
             try:
                 logger.info("Login in via credentials and save session file.")
                 cl.login(user, pw)
-                cl.dump_settings("session_instagrapi.json")
+                cl.dump_settings(session_filename)
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
                 raise
