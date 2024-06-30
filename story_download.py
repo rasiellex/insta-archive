@@ -1,3 +1,4 @@
+import os
 import random
 import time
 import traceback
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    user = config["INSTA"]["USER_01"]
+    user = config["INSTA"]["USER"]
     pw = config["INSTA"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     instagram_profile = config["INSTAGRAM_PROFILE"]
@@ -29,13 +30,16 @@ if __name__ == "__main__":
     webhook_discord = config["DISCORD"]["WEBHOOK_INSTA_DOWNLOAD"]
     webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
 
+    session_filename_user = user.replace('.', '_')
+    session_filename = f"session_instagrapi_{session_filename_user}"
+
     try:
         loader = instaloader.Instaloader(
             download_video_thumbnails=False
         )
         try:
             logger.info("Try to login via session file.")
-            loader.load_session_from_file(username=user, filename="session_instaloader")
+            loader.load_session_from_file(username=user, filename=session_filename)
             logger.info(f"Successfully logged in to account: {user} via session file.")
             loader.test_login()
         except:
@@ -43,7 +47,7 @@ if __name__ == "__main__":
             try:
                 logger.info("Login in via credentials and save session file.")
                 loader.login(user=user, passwd=pw)
-                loader.save_session_to_file("session_instaloader")
+                loader.save_session_to_file(session_filename)
                 loader.test_login()
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
             except Exception as e:
@@ -52,9 +56,11 @@ if __name__ == "__main__":
         # Retrieve the profile metadata
         profile = instaloader.Profile.from_username(loader.context, instagram_profile)
 
+        logger.info(f"Fetch stories from user {instagram_profile}.")
         stories = loader.get_stories(userids=[profile.userid])
 
         downloaded_items = 0
+        skipped_items = []
 
         for story in stories:
 
@@ -79,17 +85,26 @@ if __name__ == "__main__":
                     file_extension = '.jpg'
 
                 loader.dirname_pattern = f"{data_path}{dir_name}/"
-                loader.filename_pattern = f'{date}'
-                loader.download_storyitem(item, target='')
+                loader.filename_pattern = date
+                filename_with_ext = date + file_extension
                 file_path = loader.dirname_pattern + loader.filename_pattern + file_extension
 
+                if os.path.isfile(file_path):
+                    logger.info(f"File already exists. Skip file: {file_path}")
+                    skipped_items.append(filename_with_ext)
+                    continue
+
+                loader.download_storyitem(item, target='')
                 downloaded_items += 1
-                logger.info(f"Downloaded story: {file_path} | Download progress: {downloaded_items}/{num_stories} items.")
+                logger.info(f"Downloaded story: {file_path} | Download progress: {downloaded_items}/{num_stories}")
+
                 delay = random.randint(4, 10)
                 time.sleep(delay)
-            logger.success(f"Successfully downloaded {num_stories} stories.")
 
-        if downloaded_items == 0:
+            logger.success(f"Successfully downloaded {downloaded_items}/{num_stories} stories. "
+                           f"Skipped files ({len(skipped_items)}): {', '.join(skipped_items)}")
+
+        if downloaded_items == 0 and len(skipped_items) == 0:
             logger.info("No stories found.")
         logger.info("Finished process: Download Instagram stories. End script.")
 
