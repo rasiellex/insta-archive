@@ -43,6 +43,7 @@ if __name__ == "__main__":
             logger.info("Try to login via session file.")
             cl.load_settings(session_filename)
             cl.login(user, pw)
+            cl.get_timeline_feed()
             logger.info(f"Successfully logged in to account: {user} via session file.")
         except:
             logger.info("Login via session file failed. Session file expired.")
