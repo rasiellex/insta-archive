@@ -30,8 +30,8 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    user = config["INSTA"]["USER"]
-    pw = config["INSTA"]["PASSWORD"]
+    user = config["INSTA_DOWNLOAD"]["USER"]
+    pw = config["INSTA_DOWNLOAD"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     instagram_profile = config["INSTAGRAM_PROFILE"]
     profile_id = config["INSTAGRAM_PROFILE_ID"]
