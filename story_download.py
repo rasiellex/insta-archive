@@ -6,9 +6,17 @@ import traceback
 import pytz
 import yaml
 from instagrapi import Client
+from instagrapi.exceptions import PleaseWaitFewMinutes
 from loguru import logger
 
 from helper_functions import send_to_discord_webhook
+
+
+def fetch_stories(cl, instagram_profile, profile_id):
+    logger.info(f"Fetch stories from user {instagram_profile}.")
+    user_stories = cl.user_stories(user_id=profile_id)
+    return user_stories
+
 
 if __name__ == "__main__":
     log_file = "insta-download.log"
@@ -58,8 +66,12 @@ if __name__ == "__main__":
             # user_info = cl.user_info_by_username_v1(instagram_profile)  # user_info_by_username_v1
             # user_id = user_info.pk
 
-        logger.info(f"Fetch stories from user {instagram_profile}.")
-        user_stories = cl.user_stories(user_id=profile_id)
+        try:
+            user_stories = fetch_stories(cl, instagram_profile, profile_id)
+        except PleaseWaitFewMinutes:
+            time.sleep(180)
+            user_stories = fetch_stories(cl, instagram_profile, profile_id)
+
         num_stories = len(user_stories)
         logger.info(f"Number of stories found: {num_stories}")
 
