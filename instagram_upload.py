@@ -23,8 +23,8 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    user = config["INSTA_DOWNLOAD"]["USER"]
-    pw = config["INSTA_DOWNLOAD"]["PASSWORD"]
+    user = config["INSTA_UPLOAD"]["USER"]
+    pw = config["INSTA_UPLOAD"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     user_timezone = config["USER_TIMEZONE"]
     instagram_caption = config["CAPTION"]
