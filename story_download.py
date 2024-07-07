@@ -22,8 +22,8 @@ if __name__ == "__main__":
     with open('config.yml', 'r') as file:
         config = yaml.safe_load(file)
 
-    user = config["INSTA"]["USER"]
-    pw = config["INSTA"]["PASSWORD"]
+    user = config["INSTA_DOWNLOAD"]["USER"]
+    pw = config["INSTA_DOWNLOAD"]["PASSWORD"]
     data_path = config["DATA_PATH"]
     instagram_profile = config["INSTAGRAM_PROFILE"]
     user_timezone = config["USER_TIMEZONE"]
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     webhook_discord_alert = config["DISCORD"]["WEBHOOK_ALERT"]
 
     session_filename_user = user.replace('.', '_')
-    session_filename = f"session_instagrapi_{session_filename_user}"
+    session_filename = f"session_instaloader_{session_filename_user}"
 
     try:
         loader = instaloader.Instaloader(
