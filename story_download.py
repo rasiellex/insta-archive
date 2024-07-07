@@ -53,24 +53,27 @@ if __name__ == "__main__":
             cl.login(user, pw)
             cl.get_timeline_feed()
             logger.info(f"Successfully logged in to account: {user} via session file.")
+
+            logger.info(f"Fetch stories from user {instagram_profile}.")
+            user_stories = cl.user_stories(user_id=profile_id)
+
         except Exception as e:
             logger.info(f"Login via session file failed. Reason: {e}")
+
             try:
                 logger.info("Login in via credentials and save session file.")
                 cl.login(user, pw)
                 cl.dump_settings(session_filename)
                 logger.info(f"Successfully logged in to account: {user} via credentials and saved session file to disk.")
+
+                logger.info(f"Fetch stories from user {instagram_profile}.")
+                user_stories = cl.user_stories(user_id=profile_id)
+
             except Exception as e:
-                logger.exception(e)
+                raise
 
-            # user_info = cl.user_info_by_username_v1(instagram_profile)  # user_info_by_username_v1
-            # user_id = user_info.pk
-
-        try:
-            user_stories = fetch_stories(cl, instagram_profile, profile_id)
-        except PleaseWaitFewMinutes:
-            time.sleep(180)
-            user_stories = fetch_stories(cl, instagram_profile, profile_id)
+        # user_info = cl.user_info_by_username_v1(instagram_profile)  # user_info_by_username_v1
+        # user_id = user_info.pk
 
         num_stories = len(user_stories)
         logger.info(f"Number of stories found: {num_stories}")
@@ -120,8 +123,8 @@ if __name__ == "__main__":
         logger.info("Finished process: Download Instagram stories. End script.")
 
     except Exception as e:
-        logger.info("Script failed.")
-        logger.exception(e)
+        logger.info(f"Error: Script failed. Reason: {e}")
+        logger.info("End script.")
         error_message = traceback.format_exc()
         send_to_discord_webhook(webhook_url=webhook_discord_alert,
                                 input_text="ERROR: Instagram download script failed.")
